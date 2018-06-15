@@ -2,10 +2,10 @@
 'use strict';
 const iq = require('inquirer');
 const fs = require('fs');
+const path = require('path');
 const spawn = require('child_process').spawn;
-
-// CONFIG STUFF
-const DEFAULT_EDITOR = "/usr/bin/nano";
+const homedir = require('os').homedir();
+const notesDir = path.join(homedir,".note-taker");
 
 function createNote(title) {
     const fullDate = new Date().toISOString();
@@ -13,16 +13,18 @@ function createNote(title) {
     const time = fullDate.split('T')[1].split('.')[0].replace(/:/g,'-');
     const filename = "note_" + date + "_" + time + "_" + title.replace(/\s/g,'-') + ".txt";
 
+    const fullPath = path.join(notesDir, filename);
+
     // create file
-    fs.writeFileSync(filename,title + "\n" + "=".repeat(title.length) + "\n");
-    return filename;
+    fs.writeFileSync(fullPath,title + "\n" + "=".repeat(title.length) + "\n");
+    return fullPath;
 }
 
 function getNoteList() {
 
     let fileList = [];
 
-    fs.readdirSync('.').forEach(file => {
+    fs.readdirSync(notesDir).forEach(file => {
         if(file.startsWith('note_')) {
             const parts = file.split('_');
             if(parts.length < 4) {
@@ -31,8 +33,8 @@ function getNoteList() {
             fileList.push({
                 date: parts[1],
                 time: parts[2],
-                title: parts[3].replace(/_/g,' '),
-                filename: file
+                title: parts[3].split('.')[0].replace(/-/g,' '),
+                filename: path.join(notesDir, file)
             });
         }
     });
@@ -76,6 +78,10 @@ function spawnEditor(file, opts, cb) {
     });
 };
 
+// Check if we have our directory
+if (!fs.existsSync(notesDir)){
+    fs.mkdirSync(notesDir);
+}
 
 const mode = process.argv[2];
 switch(mode) {
@@ -89,5 +95,4 @@ switch(mode) {
         break;
     default:
         showNoteList();
-
 }
