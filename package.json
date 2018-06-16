@@ -12,5 +12,8 @@
   "dependencies": {
     "commander": "^2.15.1",
     "inquirer": "^6.0.0"
+  },
+  "bin" : {
+    "notetaker": "note-taker.js"
   }
 }
